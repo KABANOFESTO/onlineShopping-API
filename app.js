@@ -6,6 +6,7 @@ const mongoose=require('mongoose');
 
 const productRoutes=require('./src/routes/product');
 const orderRoutes=require('./src/routes/orders');
+const userRoutes=require('./src/routes/user')
 
 // mongoose.connect('mongodb+srv://node-shop:'+
 //  process.env.MONGO_ATLAS_PW +
@@ -35,6 +36,7 @@ app.use((req,res,next)=>{
 
 app.use('/product', productRoutes);
 app.use('/orders', orderRoutes);
+app.use('/user',userRoutes);
 
 app.use((req,res,next)=>{
     const error=new Error('not found');
