@@ -5,6 +5,7 @@ const mongoose=require('mongoose');
 const Order = require('../models/orders');
 const Product=require('../models/product');
 const product = require('../models/product');
+const checkAuth=require('../middleware/auth');
 
 
 router.post('/',(req,res,next)=>{

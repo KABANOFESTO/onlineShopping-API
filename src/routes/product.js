@@ -6,6 +6,9 @@ const router=express.Router();
 const mongoose=require('mongoose');
 
 const multer=require('multer');
+
+const checkAuth=require('../middleware/auth');
+
 const storage=multer.diskStorage({
 destination:function(req,file,cb) {
     cb(null,'./upload/')
@@ -33,8 +36,9 @@ fileFilter: fileFilter
 const Product=require('../models/product');
 const app= require('../../app');
 const product = require('../models/product');
+const auth = require('../middleware/auth');
 
-router.get('/',(req,res,next)=>{
+router.get('/',auth,(req,res,next)=>{
 Product.find()
 .select('name price _id productImage')
 .exec()
@@ -66,7 +70,7 @@ Product.find()
     })
 })
 });
-router.post('/',upload.single('productImage'),(req,res,next)=>{
+router.post('/', auth, upload.single('productImage'),(req,res,next)=>{
     const product= new Product({
         _id:new mongoose.Types.ObjectId(),
         name:req.body.name,
@@ -97,7 +101,7 @@ router.post('/',upload.single('productImage'),(req,res,next)=>{
     });
 });
 
-router.get('/:id',(req,res,next)=>{
+router.get('/:id',auth,(req,res,next)=>{
     const id=req.params.id;
     Product.findById(id)
     .select('name price productImage _id')
@@ -126,7 +130,7 @@ router.get('/:id',(req,res,next)=>{
     })
 });
 
-router.patch('/:id',(req,res,next)=>{
+router.patch('/:id',auth,(req,res,next)=>{
     const id =req.params.id;
     const updateOpr={};
     for(const opr of req.body){
@@ -152,7 +156,7 @@ router.patch('/:id',(req,res,next)=>{
     })
 });
 
-router.delete('/:id',(req,res,next)=>{
+router.delete('/:id',auth,(req,res,next)=>{
    const id=req.params.id;
    Product.findByIdAndRemove({_id: id})
    .exec()
