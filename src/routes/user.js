@@ -3,6 +3,7 @@ const router=express.Router();
 const mongoose=require('mongoose');
 const User=require('../models/user');
 const bcrypt=require('bcrypt');
+const jwt=require('jsonwebtoken');
 
 router.post('/signUp',(req,res,next)=>{
     User.find({email:req.body.email})
@@ -43,6 +44,50 @@ router.post('/signUp',(req,res,next)=>{
     }
     })
 });
+
+router.post('/login',(req,res,next)=>{
+    User.find({email:req.body.email})
+    .exec()
+    .then(user=>{
+        if(user.length < 1){
+            return res.status(40n).json({
+                message:'Auth failed'
+            });
+        }
+    bcrypt.compare(req.body.password, user[0].password,(err,result)=>{
+        if(err){
+            return res.status(401).json({
+                message:'Auth failed'
+            })
+        }
+        if(result){
+        const token=jwt.sign({
+                email:user[0].email,
+                userId:user[0]._id
+            },process.env.JWT_KEY,
+            {
+                expiresIn:"1h"
+            }
+            );
+            res.status(200).json({
+                message:'Auth successfully',
+                token:token
+            })
+        }
+        else{
+            res.status(401).json({
+            message:'Auth failed'
+        })
+    }
+    })
+    })
+    .catch(err=>{
+        console.log(err);
+        res.status(500).json({
+            error:err
+        });
+    })
+})
 
 router.delete('/:userId',(req,res,next)=>{
  User.findByIdAndRemove({_id:req.params.userId})
