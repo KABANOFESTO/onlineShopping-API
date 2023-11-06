@@ -1,108 +1,18 @@
 const express=require('express');
 const router=express.Router();
-const mongoose=require('mongoose');
-const User=require('../models/user');
-const bcrypt=require('bcrypt');
-const jwt=require('jsonwebtoken');
+// const mongoose=require('mongoose');
+// const User=require('../models/user');
+// const bcrypt=require('bcrypt');
+// const jwt=require('jsonwebtoken');
+const auth=require('../middleware/auth');
+const UsersController=require('../controllers/user');
 
-router.post('/signUp',(req,res,next)=>{
-    User.find({email:req.body.email})
-    .exec()
-    .then(user=>{
-        if(user.length >=1){
-        return res.status(409).json({
-            message:'mail are existing'
-        })
-    }else{
-        bcrypt.hash(req.body.password, 10 , (err,hash)=>{
-            if(err){
-                return res.status(500).json({
-                    error:err
-                });
-            }
-            else{
-                const user=new User({
-                    _id:new mongoose.Types.ObjectId(),
-                    email:req.body.email,
-                    password: hash
-                });
-                user.save()
-                .then(result=>{
-                    console.log(result);
-                    res.status(201).json({
-                        message:'user well created'
-                    })
-                })
-                .catch(err=>{
-                    console.log(err);
-                    res.status(500).json({
-                        error:err
-                    })
-                });
-            }
-        }); 
-    }
-    })
-});
+router.post('/signUp',UsersController.user_signup);
 
-router.post('/login',(req,res,next)=>{
-    User.find({email:req.body.email})
-    .exec()
-    .then(user=>{
-        if(user.length < 1){
-            return res.status(40n).json({
-                message:'Auth failed'
-            });
-        }
-    bcrypt.compare(req.body.password, user[0].password,(err,result)=>{
-        if(err){
-            return res.status(401).json({
-                message:'Auth failed'
-            })
-        }
-        if(result){
-        const token=jwt.sign({
-                email:user[0].email,
-                userId:user[0]._id
-            },process.env.JWT_KEY,
-            {
-                expiresIn:"1h"
-            }
-            );
-            res.status(200).json({
-                message:'Auth successfully',
-                token:token
-            })
-        }
-        else{
-            res.status(401).json({
-            message:'Auth failed'
-        })
-    }
-    })
-    })
-    .catch(err=>{
-        console.log(err);
-        res.status(500).json({
-            error:err
-        });
-    })
-})
+router.post('/login',UsersController.user_login);
 
-router.delete('/:userId',(req,res,next)=>{
- User.findByIdAndRemove({_id:req.params.userId})
- .exec()
- .then(result=>{
-    console.log(result);
-    res.status(200).json({
-        message:'user deleted well'
-    })
- })
- .catch(err=>{
-    console.log(err);
-    res.status(500).json({
-        error:err
-    })
- })
-})
+router.delete('/:userId',auth);
+
+router.get('/',auth,UsersController.get_users);
+
 module.exports=router;
